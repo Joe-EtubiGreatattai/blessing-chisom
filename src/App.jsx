@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ParallaxProvider } from 'react-scroll-parallax';
+import { AnimatePresence } from 'framer-motion';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -104,6 +105,37 @@ const AppContent = () => {
     setIsAuthenticated(false);
   };
 
+  const AnimatedRoutes = () => {
+    const location = useLocation();
+
+    return (
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<Home projects={projects} />} />
+          <Route path="/about" element={<About data={aboutData} />} />
+          <Route path="/project/:id" element={<ProjectDetail projects={projects} />} />
+          <Route path="/login" element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
+          <Route
+            path="/dashboard"
+            element={
+              isAuthenticated ? (
+                <Dashboard
+                  projects={projects}
+                  aboutData={aboutData}
+                  onUpdateProjects={setProjects}
+                  onUpdateAbout={setAboutData}
+                />
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </AnimatePresence>
+    );
+  };
+
   return (
     <ParallaxProvider>
       <Router>
@@ -113,28 +145,7 @@ const AppContent = () => {
             onLogout={handleLogout}
           />
 
-          <Routes>
-            <Route path="/" element={<Home projects={projects} />} />
-            <Route path="/about" element={<About data={aboutData} />} />
-            <Route path="/project/:id" element={<ProjectDetail projects={projects} />} />
-            <Route path="/login" element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
-            <Route
-              path="/dashboard"
-              element={
-                isAuthenticated ? (
-                  <Dashboard
-                    projects={projects}
-                    aboutData={aboutData}
-                    onUpdateProjects={setProjects}
-                    onUpdateAbout={setAboutData}
-                  />
-                ) : (
-                  <Navigate to="/login" />
-                )
-              }
-            />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
+          <AnimatedRoutes />
 
           <Footer />
         </div>

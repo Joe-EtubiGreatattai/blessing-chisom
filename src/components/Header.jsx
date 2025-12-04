@@ -19,7 +19,7 @@ const Header = ({ isAuthenticated, onLogout }) => {
                     {/* Logo / Brand */}
                     <Link to="/" className="flex-shrink-0 cursor-pointer group">
                         <h1 className="text-2xl font-bold tracking-tight text-gray-900 group-hover:text-gray-600 transition-colors font-serif">
-                            Blessing Chisom<span className="text-gray-400 font-light"> Made...</span>
+                            Blessing Ossom<span className="text-gray-400 font-light"> Made...</span>
                         </h1>
                     </Link>
 
