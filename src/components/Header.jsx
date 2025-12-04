@@ -58,17 +58,11 @@ const Header = ({ isAuthenticated, onLogout }) => {
                                 to="/login"
                                 className="text-gray-400 hover:text-gray-900 transition-colors flex items-center gap-1 text-sm font-medium"
                             >
-                                <LogIn size={16} /> Studio
+                                Studio
                             </Link>
                         )}
 
-                        <a
-                            href="#"
-                            className="text-gray-400 hover:text-gray-600 transition-colors ml-4"
-                            aria-label="Contact via Email"
-                        >
-                            <Mail size={20} />
-                        </a>
+
                     </nav>
 
                     {/* Mobile Menu Button */}
@@ -126,11 +120,7 @@ const Header = ({ isAuthenticated, onLogout }) => {
                                 Studio
                             </Link>
                         )}
-                        <div className="px-3 py-3 text-gray-500 flex gap-4">
-                            <Mail size={20} />
-                            <Instagram size={20} />
-                            <Linkedin size={20} />
-                        </div>
+
                     </div>
                 </div>
             )}
