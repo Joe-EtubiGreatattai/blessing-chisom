@@ -10,7 +10,7 @@ const Dashboard = ({ projects, aboutData, onUpdateProjects, onUpdateAbout }) => 
 
     // Project Form State
     const [projectForm, setProjectForm] = useState({
-        title: '', category: '', image: '', size: 'medium', description: '', role: '', year: '', tools: ''
+        title: '', category: 'Logo', image: '', images: [], size: 'medium', description: '', role: '', year: '', tools: ''
     });
 
     const handleSaveAbout = (e) => {
@@ -21,7 +21,7 @@ const Dashboard = ({ projects, aboutData, onUpdateProjects, onUpdateAbout }) => 
 
     const handleEditProject = (project) => {
         setEditingProject(project);
-        setProjectForm(project);
+        setProjectForm({ ...project, images: project.images || [] });
         window.scrollTo(0, 0);
     };
 
@@ -32,19 +32,62 @@ const Dashboard = ({ projects, aboutData, onUpdateProjects, onUpdateAbout }) => 
         }
     };
 
+    // Helper to convert file to Base64
+    const convertToBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = (error) => reject(error);
+        });
+    };
+
+    const handleImageUpload = async (e, type) => {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+
+        try {
+            if (type === 'cover') {
+                const base64 = await convertToBase64(files[0]);
+                setProjectForm(prev => ({ ...prev, image: base64 }));
+            } else if (type === 'gallery') {
+                const newImages = await Promise.all(files.map(file => convertToBase64(file)));
+                setProjectForm(prev => ({ ...prev, images: [...prev.images, ...newImages] }));
+            }
+        } catch (error) {
+            console.error("Error uploading image:", error);
+            alert("Failed to upload image. Please try a smaller file.");
+        }
+    };
+
+    const removeGalleryImage = (index) => {
+        setProjectForm(prev => ({
+            ...prev,
+            images: prev.images.filter((_, i) => i !== index)
+        }));
+    };
+
     const handleSaveProject = (e) => {
         e.preventDefault();
+
+        // Ensure gallery includes cover if empty or simply sync logic
+        const finalProjectData = {
+            ...projectForm,
+            // If specific logic needed for 'images' array (like sticking cover at index 0), do it here. 
+            // For now, keeping them distinct but ensuring consistency.
+        };
+
         if (editingProject) {
             // Update existing
-            const updated = projects.map(p => p.id === editingProject.id ? { ...projectForm, id: editingProject.id } : p);
+            const updated = projects.map(p => p.id === editingProject.id ? { ...finalProjectData, id: editingProject.id } : p);
             onUpdateProjects(updated);
         } else {
             // Create new
-            const newProject = { ...projectForm, id: Date.now() };
+            const newProject = { ...finalProjectData, id: Date.now() };
             onUpdateProjects([newProject, ...projects]);
         }
         setEditingProject(null);
-        setProjectForm({ title: '', category: '', image: '', size: 'medium', description: '', role: '', year: '', tools: '' });
+        setProjectForm({ title: '', category: 'Logo', image: '', images: [], size: 'medium', description: '', role: '', year: '', tools: '', challenge: '', solution: '' });
     };
 
     return (
@@ -77,24 +120,97 @@ const Dashboard = ({ projects, aboutData, onUpdateProjects, onUpdateAbout }) => 
                                 <form onSubmit={handleSaveProject} className="space-y-4">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <input placeholder="Title" required className="border p-2 rounded" value={projectForm.title} onChange={e => setProjectForm({ ...projectForm, title: e.target.value })} />
-                                        <input placeholder="Category" required className="border p-2 rounded" value={projectForm.category} onChange={e => setProjectForm({ ...projectForm, category: e.target.value })} />
-                                        <input placeholder="Image URL" required className="border p-2 rounded" value={projectForm.image} onChange={e => setProjectForm({ ...projectForm, image: e.target.value })} />
-                                        <select className="border p-2 rounded" value={projectForm.size} onChange={e => setProjectForm({ ...projectForm, size: e.target.value })}>
+
+                                        <select
+                                            required
+                                            className="border p-2 rounded bg-white"
+                                            value={projectForm.category}
+                                            onChange={e => setProjectForm({ ...projectForm, category: e.target.value })}
+                                        >
+                                            <option value="Logo">Logo</option>
+                                            <option value="Fliers">Fliers</option>
+                                            <option value="Marketing">Marketing</option>
+                                        </select>
+
+                                        <select className="border p-2 rounded bg-white" value={projectForm.size} onChange={e => setProjectForm({ ...projectForm, size: e.target.value })}>
                                             <option value="small">Small</option>
                                             <option value="medium">Medium</option>
                                             <option value="large">Large</option>
                                         </select>
+
                                         <input placeholder="Role" className="border p-2 rounded" value={projectForm.role} onChange={e => setProjectForm({ ...projectForm, role: e.target.value })} />
                                         <input placeholder="Year" className="border p-2 rounded" value={projectForm.year} onChange={e => setProjectForm({ ...projectForm, year: e.target.value })} />
-                                        <input placeholder="Tools" className="border p-2 rounded md:col-span-2" value={projectForm.tools} onChange={e => setProjectForm({ ...projectForm, tools: e.target.value })} />
+                                        <input placeholder="Tools" className="border p-2 rounded" value={projectForm.tools} onChange={e => setProjectForm({ ...projectForm, tools: e.target.value })} />
                                     </div>
-                                    <textarea placeholder="Description" required className="w-full border p-2 rounded h-32" value={projectForm.description} onChange={e => setProjectForm({ ...projectForm, description: e.target.value })} />
+
+                                    {/* Image Upload Section */}
+                                    <div className="space-y-4 border-t border-gray-100 pt-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Cover Image</label>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                                onChange={(e) => handleImageUpload(e, 'cover')}
+                                            />
+                                            {projectForm.image && (
+                                                <img src={projectForm.image} alt="Preview" className="mt-2 h-20 w-20 object-cover rounded shadow ring-1 ring-gray-200" />
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Gallery Images</label>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                multiple
+                                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                                onChange={(e) => handleImageUpload(e, 'gallery')}
+                                            />
+                                            {projectForm.images && projectForm.images.length > 0 && (
+                                                <div className="flex gap-2 mt-2 flex-wrap">
+                                                    {projectForm.images.map((img, idx) => (
+                                                        <div key={idx} className="relative group">
+                                                            <img src={img} alt={`Gallery ${idx}`} className="h-20 w-20 object-cover rounded shadow ring-1 ring-gray-200" />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeGalleryImage(idx)}
+                                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            >
+                                                                <Trash2 size={12} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4 pt-4 border-t border-gray-100">
+                                        <textarea placeholder="Description (Main summary)" required className="w-full border p-2 rounded h-32" value={projectForm.description} onChange={e => setProjectForm({ ...projectForm, description: e.target.value })} />
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {(projectForm.category === 'Logo' || projectForm.category === 'Marketing') && (
+                                                <textarea
+                                                    placeholder="The Challenge"
+                                                    className={`w-full border p-2 rounded h-32 ${projectForm.category === 'Marketing' ? 'md:col-span-2' : ''}`}
+                                                    value={projectForm.challenge || ''}
+                                                    onChange={e => setProjectForm({ ...projectForm, challenge: e.target.value })}
+                                                />
+                                            )}
+
+                                            {projectForm.category === 'Logo' && (
+                                                <textarea placeholder="The Vision (Solution)" className="w-full border p-2 rounded h-32" value={projectForm.solution || ''} onChange={e => setProjectForm({ ...projectForm, solution: e.target.value })} />
+                                            )}
+                                        </div>
+                                    </div>
+
                                     <div className="flex gap-2">
                                         <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2">
                                             <Save size={16} /> Save Project
                                         </button>
                                         {editingProject && (
-                                            <button type="button" onClick={() => { setEditingProject(null); setProjectForm({ title: '', category: '', image: '', size: 'medium', description: '', role: '', year: '', tools: '' }); }} className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+                                            <button type="button" onClick={() => { setEditingProject(null); setProjectForm({ title: '', category: 'Logo', image: '', images: [], size: 'medium', description: '', role: '', year: '', tools: '' }); }} className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
                                                 Cancel
                                             </button>
                                         )}
