@@ -39,7 +39,7 @@ const About = ({ data }) => {
             <div className="mt-20">
                 <h3 className="text-sm font-bold tracking-widest text-gray-400 uppercase mb-8 text-center md:text-left">Selected Clients & Projects</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                    {['Zynga', 'Disney', 'Zoologist Perfumes', 'Tailtown'].map((client) => (
+                    {['Apex Tech', 'EcoStore', 'Urban Coffee', 'Zenith'].map((client) => (
                         <div key={client} className="flex items-center justify-center md:justify-start grayscale opacity-50 hover:opacity-100 hover:grayscale-0 transition-all duration-300">
                             <span className="text-xl font-serif text-gray-400">{client}</span>
                         </div>

@@ -61,7 +61,7 @@ const AppContent = () => {
   // State Initialization from localStorage or Default
   const [projects, setProjects] = useState(() => {
     try {
-      const saved = localStorage.getItem('portfolio_projects');
+      const saved = localStorage.getItem('tfix_projects');
       return saved ? JSON.parse(saved) : DEFAULT_PORTFOLIO_ITEMS;
     } catch (e) {
       console.error("Failed to parse projects from localStorage", e);
@@ -71,7 +71,7 @@ const AppContent = () => {
 
   const [aboutData, setAboutData] = useState(() => {
     try {
-      const saved = localStorage.getItem('portfolio_about');
+      const saved = localStorage.getItem('tfix_about');
       return saved ? JSON.parse(saved) : DEFAULT_ABOUT_DATA;
     } catch (e) {
       console.error("Failed to parse about data from localStorage", e);
@@ -85,11 +85,11 @@ const AppContent = () => {
 
   // Persistence Effects
   useEffect(() => {
-    localStorage.setItem('portfolio_projects', JSON.stringify(projects));
+    localStorage.setItem('tfix_projects', JSON.stringify(projects));
   }, [projects]);
 
   useEffect(() => {
-    localStorage.setItem('portfolio_about', JSON.stringify(aboutData));
+    localStorage.setItem('tfix_about', JSON.stringify(aboutData));
   }, [aboutData]);
 
   useEffect(() => {
